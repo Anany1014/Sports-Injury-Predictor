@@ -18,8 +18,9 @@ class HealthResponse(BaseModel):
 
 
 @router.get("/health", response_model=HealthResponse, summary="Liveness probe")
-async def health() -> HealthResponse:
-    return HealthResponse(status="ok", model_loaded=False)
+async def health(request: Request) -> HealthResponse:
+    model_loaded = hasattr(request.app.state, "predictor") and request.app.state.predictor is not None
+    return HealthResponse(status="ok", model_loaded=model_loaded)
 
 
 @router.get("/health/ready", response_model=HealthResponse, summary="Readiness probe")
