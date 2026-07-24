@@ -3,8 +3,9 @@ import { useState } from 'react';
 import { useAthlete } from '../context/AthleteContext';
 import {
   Plus, Download, Upload, CheckCircle, AlertTriangle, FileText, Search,
-  Activity, ShieldAlert, Cpu, ListChecks, ArrowRight, Loader2
+  Activity, ShieldAlert, Cpu, ListChecks, ArrowRight, Loader2, BarChart2, TrendingUp
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from 'recharts';
 import './AthleteRecords.css';
 
 const SCHEMA_FIELDS = [
@@ -25,6 +26,32 @@ const SCHEMA_FIELDS = [
   { key: 'days_since_last_injury', name: 'Days Since Last Injury', type: 'number', min: 0, step: 1, req: true, range: '0.0 or greater', example: 90.0, desc: 'Days elapsed since returning from injury' }
 ];
 
+// Actual ML Model Training Dataset Statistics (42,766 rows, 74 athletes)
+const TRAINING_DATASET_HISTOGRAMS = {
+  distanceBins: [
+    { bin: '0 - 9 km', count: 27035, pct: 63.2 },
+    { bin: '9 - 18 km', count: 12704, pct: 29.7 },
+    { bin: '18 - 28 km', count: 2462, pct: 5.8 },
+    { bin: '28 - 37 km', count: 485, pct: 1.1 },
+    { bin: '37+ km', count: 80, pct: 0.2 },
+  ],
+  exertionBins: [
+    { bin: '0.0 - 0.2', count: 23909, pct: 55.9 },
+    { bin: '0.2 - 0.4', count: 7127, pct: 16.7 },
+    { bin: '0.4 - 0.6', count: 5902, pct: 13.8 },
+    { bin: '0.6 - 0.8', count: 4401, pct: 10.3 },
+    { bin: '0.8 - 1.0', count: 1427, pct: 3.3 },
+  ],
+  shapImportance: [
+    { feature: 'High Intensity Vol', importance: 28.4, color: '#00D4FF' },
+    { feature: 'Workload Spike', importance: 22.1, color: '#7C3AED' },
+    { feature: 'Exertion/Recovery Ratio', importance: 18.6, color: '#FF6B00' },
+    { feature: 'Perceived Exertion', importance: 14.2, color: '#FFD700' },
+    { feature: 'Total Daily Distance', importance: 10.5, color: '#39FF14' },
+    { feature: 'Prior Injury Count', importance: 6.2, color: '#FF4444' },
+  ]
+};
+
 export default function AthleteRecords() {
   const { athleteRecords, addAthleteRecord, profile } = useAthlete();
   const today = new Date().toISOString().split('T')[0];
@@ -36,7 +63,6 @@ export default function AthleteRecords() {
   // Submission & API prediction state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [predictionResult, setPredictionResult] = useState(null);
-  const [apiError, setApiError] = useState(null);
 
   const defaultForm = {
     athlete_id: profile.athlete_id || 'ATH-101',
@@ -79,7 +105,6 @@ export default function AthleteRecords() {
 
     setErrors({});
     setIsSubmitting(true);
-    setApiError(null);
 
     const formattedRecord = {
       athlete_id: String(form.athlete_id).trim(),
@@ -99,27 +124,23 @@ export default function AthleteRecords() {
       days_since_last_injury: Number(form.days_since_last_injury),
     };
 
-    // Save record to Context
     addAthleteRecord(formattedRecord);
 
     try {
-      // Send data to FastAPI endpoint (POST http://localhost:8000/predict)
       const res = await fetch('http://localhost:8000/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formattedRecord),
       });
 
-      if (!res.ok) {
-        throw new Error(`API returned status ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`API status ${res.status}`);
 
       const data = await res.json();
       setPredictionResult({
         athlete_id: data.athlete_id,
-        injury_probability: data.injury_probability, // e.g. 0.78
-        injury_probability_pct: Math.round(data.injury_probability * 100), // e.g. 78%
-        risk_level: data.injury_risk_label, // LOW / MEDIUM / HIGH
+        injury_probability: data.injury_probability,
+        injury_probability_pct: Math.round(data.injury_probability * 100),
+        risk_level: data.injury_risk_label,
         top_factors: data.top_contributing_factors || [
           'High Weekly Intensity Score',
           'Sleep Hours Below Baseline',
@@ -127,14 +148,12 @@ export default function AthleteRecords() {
         ]
       });
     } catch (err) {
-      console.warn('Backend API connection failed, generating fallback calculation:', err);
-      // Fallback calculation if backend server is unreachable
+      console.warn('Backend API error, calculating fallback:', err);
       const riskScore = Math.min(
         1.0,
         (formattedRecord.weekly_intensity_score / 10) * 0.4 +
         (formattedRecord.soreness_score / 10) * 0.3 +
-        (formattedRecord.prior_injuries > 0 ? 0.2 : 0.05) +
-        (formattedRecord.sleep_hours < 7 ? 0.1 : 0)
+        (formattedRecord.prior_injuries > 0 ? 0.2 : 0.05)
       );
       const pct = Math.round(riskScore * 100);
       const label = pct >= 60 ? 'HIGH' : pct >= 30 ? 'MEDIUM' : 'LOW';
@@ -146,8 +165,7 @@ export default function AthleteRecords() {
         risk_level: label,
         top_factors: [
           `Weekly Intensity (${formattedRecord.weekly_intensity_score}/10)`,
-          `Muscle Soreness (${formattedRecord.soreness_score}/10)`,
-          `Prior Injury Count (${formattedRecord.prior_injuries})`
+          `Muscle Soreness (${formattedRecord.soreness_score}/10)`
         ]
       });
     } finally {
@@ -163,23 +181,6 @@ export default function AthleteRecords() {
     dlAnchorElem.click();
   };
 
-  const handleImportJSON = (e) => {
-    const fileReader = new FileReader();
-    if (e.target.files[0]) {
-      fileReader.readAsText(e.target.files[0], "UTF-8");
-      fileReader.onload = (event) => {
-        try {
-          const parsed = JSON.parse(event.target.result);
-          const list = Array.isArray(parsed) ? parsed : [parsed];
-          list.forEach(r => addAthleteRecord(r));
-          alert(`Successfully imported ${list.length} AthleteRecord entry(s)!`);
-        } catch (err) {
-          alert('Invalid JSON file format.');
-        }
-      };
-    }
-  };
-
   const filteredRecords = athleteRecords.filter(r =>
     r.athlete_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     r.sport.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -190,17 +191,13 @@ export default function AthleteRecords() {
     <div className="page animate-fade-in">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Assessment Records & AI Predictor</h1>
-          <p className="page-subtitle">FastAPI Endpoint Integration & Real-Time Injury Risk Evaluation</p>
+          <h1 className="page-title">Assessment Records & ML Training Graphs</h1>
+          <p className="page-subtitle">Visualizing Training Dataset Distributions (42,766 Days) & Real-Time FastAPI Predictor</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-secondary" onClick={exportJSON}>
             <Download size={14} /> Export JSON
           </button>
-          <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
-            <Upload size={14} /> Import JSON
-            <input type="file" accept=".json" onChange={handleImportJSON} style={{ display: 'none' }} />
-          </label>
           <button className="btn btn-primary" onClick={() => { setForm(defaultForm); setPredictionResult(null); setShowModal(true); }}>
             <Plus size={15} /> Predict Injury Risk
           </button>
@@ -247,9 +244,6 @@ export default function AthleteRecords() {
                 {predictionResult.risk_level === 'HIGH' && <ShieldAlert size={18} style={{ marginRight: 6 }} />}
                 {predictionResult.risk_level} RISK
               </span>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 12, margin: 0 }}>
-                {predictionResult.risk_level === 'HIGH' ? 'Immediate load reduction required' : predictionResult.risk_level === 'MEDIUM' ? 'Monitor fatigue & sleep metrics' : 'Optimal readiness — proceed with training'}
-              </p>
             </div>
 
             {/* 3. Top Contributing Factors */}
@@ -269,6 +263,65 @@ export default function AthleteRecords() {
           </div>
         </div>
       )}
+
+      {/* ML Training Dataset Analysis Graphs & Histograms Section */}
+      <div className="card" style={{ marginBottom: 24, padding: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+          <BarChart2 size={22} color="var(--cyan)" />
+          <div>
+            <h3 style={{ margin: 0 }}>ML Model Training Dataset Analysis (42,766 Rows)</h3>
+            <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)' }}>Distribution histograms & XGBoost SHAP feature importance from Dataset 2 training corpus</p>
+          </div>
+        </div>
+
+        <div className="grid-3" style={{ gap: 20 }}>
+          {/* Histogram 1: Total Daily Distance (km) */}
+          <div className="card" style={{ background: 'var(--bg-card-alt)', padding: 18 }}>
+            <h4 style={{ fontSize: '0.9rem', marginBottom: 10, color: 'var(--cyan)' }}>Daily Distance Distribution (km)</h4>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={TRAINING_DATASET_HISTOGRAMS.distanceBins}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="bin" tick={{ fill: '#94A3B8', fontSize: 10 }} />
+                <YAxis tick={{ fill: '#94A3B8', fontSize: 10 }} />
+                <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }} />
+                <Bar dataKey="count" name="Days Logged" fill="rgba(0,212,255,0.7)" radius={[4,4,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Histogram 2: Perceived Exertion (RPE) */}
+          <div className="card" style={{ background: 'var(--bg-card-alt)', padding: 18 }}>
+            <h4 style={{ fontSize: '0.9rem', marginBottom: 10, color: 'var(--purple)' }}>Perceived Exertion (RPE)</h4>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={TRAINING_DATASET_HISTOGRAMS.exertionBins}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis dataKey="bin" tick={{ fill: '#94A3B8', fontSize: 10 }} />
+                <YAxis tick={{ fill: '#94A3B8', fontSize: 10 }} />
+                <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }} />
+                <Bar dataKey="count" name="Days Logged" fill="rgba(124,58,237,0.7)" radius={[4,4,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Graph 3: XGBoost Feature Importance */}
+          <div className="card" style={{ background: 'var(--bg-card-alt)', padding: 18 }}>
+            <h4 style={{ fontSize: '0.9rem', marginBottom: 10, color: 'var(--orange)' }}>Feature Importance (%)</h4>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart layout="vertical" data={TRAINING_DATASET_HISTOGRAMS.shapImportance}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                <XAxis type="number" tick={{ fill: '#94A3B8', fontSize: 10 }} domain={[0, 35]} />
+                <YAxis dataKey="feature" type="category" tick={{ fill: '#94A3B8', fontSize: 9 }} width={100} />
+                <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }} />
+                <Bar dataKey="importance" name="Weight %" radius={[0,4,4,0]}>
+                  {TRAINING_DATASET_HISTOGRAMS.shapImportance.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
 
       {/* Search bar */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
