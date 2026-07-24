@@ -48,6 +48,7 @@ class PredictionResponse(BaseModel):
     athlete_id: str
     injury_probability: float = Field(..., ge=0.0, le=1.0, description="Probability of injury (0–1)")
     injury_risk_label: str = Field(..., description="LOW | MEDIUM | HIGH")
+    top_contributing_factors: list[str] = Field(default_factory=list, description="Top factors contributing to injury risk")
     model_version: str
 
 

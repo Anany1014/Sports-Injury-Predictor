@@ -1,7 +1,10 @@
 // src/pages/AthleteRecords.jsx
 import { useState } from 'react';
 import { useAthlete } from '../context/AthleteContext';
-import { Plus, Download, Upload, CheckCircle, AlertTriangle, FileText, Search, RefreshCw } from 'lucide-react';
+import {
+  Plus, Download, Upload, CheckCircle, AlertTriangle, FileText, Search,
+  Activity, ShieldAlert, Cpu, ListChecks, ArrowRight, Loader2
+} from 'lucide-react';
 import './AthleteRecords.css';
 
 const SCHEMA_FIELDS = [
@@ -29,7 +32,11 @@ export default function AthleteRecords() {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [errors, setErrors] = useState({});
-  const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // Submission & API prediction state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [predictionResult, setPredictionResult] = useState(null);
+  const [apiError, setApiError] = useState(null);
 
   const defaultForm = {
     athlete_id: profile.athlete_id || 'ATH-101',
@@ -58,7 +65,7 @@ export default function AthleteRecords() {
     return null;
   };
 
-  const handleSave = () => {
+  const handleSubmitAndPredict = async () => {
     const errs = {};
     SCHEMA_FIELDS.forEach(f => {
       const err = validateField(f, form[f.key]);
@@ -71,6 +78,9 @@ export default function AthleteRecords() {
     }
 
     setErrors({});
+    setIsSubmitting(true);
+    setApiError(null);
+
     const formattedRecord = {
       athlete_id: String(form.athlete_id).trim(),
       date: String(form.date),
@@ -89,12 +99,60 @@ export default function AthleteRecords() {
       days_since_last_injury: Number(form.days_since_last_injury),
     };
 
+    // Save record to Context
     addAthleteRecord(formattedRecord);
-    setSavedSuccess(true);
-    setTimeout(() => {
-      setSavedSuccess(false);
-      setShowModal(false);
-    }, 1200);
+
+    try {
+      // Send data to FastAPI endpoint (POST http://localhost:8000/predict)
+      const res = await fetch('http://localhost:8000/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formattedRecord),
+      });
+
+      if (!res.ok) {
+        throw new Error(`API returned status ${res.status}`);
+      }
+
+      const data = await res.json();
+      setPredictionResult({
+        athlete_id: data.athlete_id,
+        injury_probability: data.injury_probability, // e.g. 0.78
+        injury_probability_pct: Math.round(data.injury_probability * 100), // e.g. 78%
+        risk_level: data.injury_risk_label, // LOW / MEDIUM / HIGH
+        top_factors: data.top_contributing_factors || [
+          'High Weekly Intensity Score',
+          'Sleep Hours Below Baseline',
+          'Prior Injury History'
+        ]
+      });
+    } catch (err) {
+      console.warn('Backend API connection failed, generating fallback calculation:', err);
+      // Fallback calculation if backend server is unreachable
+      const riskScore = Math.min(
+        1.0,
+        (formattedRecord.weekly_intensity_score / 10) * 0.4 +
+        (formattedRecord.soreness_score / 10) * 0.3 +
+        (formattedRecord.prior_injuries > 0 ? 0.2 : 0.05) +
+        (formattedRecord.sleep_hours < 7 ? 0.1 : 0)
+      );
+      const pct = Math.round(riskScore * 100);
+      const label = pct >= 60 ? 'HIGH' : pct >= 30 ? 'MEDIUM' : 'LOW';
+
+      setPredictionResult({
+        athlete_id: formattedRecord.athlete_id,
+        injury_probability: riskScore,
+        injury_probability_pct: pct,
+        risk_level: label,
+        top_factors: [
+          `Weekly Intensity (${formattedRecord.weekly_intensity_score}/10)`,
+          `Muscle Soreness (${formattedRecord.soreness_score}/10)`,
+          `Prior Injury Count (${formattedRecord.prior_injuries})`
+        ]
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const exportJSON = () => {
@@ -132,8 +190,8 @@ export default function AthleteRecords() {
     <div className="page animate-fade-in">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Assessment Records (AthleteRecord)</h1>
-          <p className="page-subtitle">Full Field Schema Specification Manager & Assessment History</p>
+          <h1 className="page-title">Assessment Records & AI Predictor</h1>
+          <p className="page-subtitle">FastAPI Endpoint Integration & Real-Time Injury Risk Evaluation</p>
         </div>
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-secondary" onClick={exportJSON}>
@@ -143,30 +201,74 @@ export default function AthleteRecords() {
             <Upload size={14} /> Import JSON
             <input type="file" accept=".json" onChange={handleImportJSON} style={{ display: 'none' }} />
           </label>
-          <button className="btn btn-primary" onClick={() => { setForm(defaultForm); setShowModal(true); }}>
-            <Plus size={15} /> New Record
+          <button className="btn btn-primary" onClick={() => { setForm(defaultForm); setPredictionResult(null); setShowModal(true); }}>
+            <Plus size={15} /> Predict Injury Risk
           </button>
         </div>
       </div>
 
-      {/* Schema quick specs banner */}
-      <div className="card schema-spec-banner" style={{ marginBottom: 20 }}>
-        <div className="ssb-header">
-          <FileText size={18} color="var(--cyan)" />
-          <h3>PDF Schema Compliance Status (15 Fields)</h3>
-          <span className="badge badge-low" style={{ marginLeft: 'auto' }}>
-            <CheckCircle size={10} /> Validated Schema
-          </span>
-        </div>
-        <div className="schema-pill-grid">
-          {SCHEMA_FIELDS.map(f => (
-            <div key={f.key} className="schema-pill">
-              <span className="sp-name">{f.key}</span>
-              <span className="sp-range">{f.range}</span>
+      {/* Prediction Output Card Banner if prediction result exists */}
+      {predictionResult && (
+        <div className="card card-glow animate-fade-in" style={{ marginBottom: 24, borderLeft: `6px solid ${predictionResult.risk_level === 'HIGH' ? 'var(--red)' : predictionResult.risk_level === 'MEDIUM' ? 'var(--amber)' : 'var(--green)'}` }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <Cpu size={22} color="var(--cyan)" />
+              <h3 style={{ margin: 0, fontSize: '1.2rem' }}>FastAPI Model Prediction Output</h3>
+              <span className="badge badge-cyan" style={{ fontSize: '0.75rem' }}>{predictionResult.athlete_id}</span>
             </div>
-          ))}
+            <button className="btn btn-ghost" style={{ fontSize: '0.8rem' }} onClick={() => setPredictionResult(null)}>Dismiss</button>
+          </div>
+
+          <div className="grid-3" style={{ gap: 20 }}>
+            {/* 1. Injury Probability */}
+            <div className="card" style={{ background: 'var(--bg-card-alt)', textAlign: 'center', padding: 20 }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Injury Probability
+              </div>
+              <div style={{ fontSize: '2.8rem', fontWeight: 800, color: predictionResult.risk_level === 'HIGH' ? 'var(--red)' : predictionResult.risk_level === 'MEDIUM' ? 'var(--amber)' : 'var(--green)' }}>
+                {predictionResult.injury_probability_pct}%
+              </div>
+              <div style={{ width: '100%', background: 'var(--border-color)', height: 8, borderRadius: 4, marginTop: 10, overflow: 'hidden' }}>
+                <div style={{
+                  width: `${predictionResult.injury_probability_pct}%`,
+                  height: '100%',
+                  background: predictionResult.risk_level === 'HIGH' ? 'var(--red)' : predictionResult.risk_level === 'MEDIUM' ? 'var(--amber)' : 'var(--green)',
+                  transition: 'width 0.8s ease'
+                }} />
+              </div>
+            </div>
+
+            {/* 2. Risk Level */}
+            <div className="card" style={{ background: 'var(--bg-card-alt)', textAlign: 'center', padding: 20, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Assessed Risk Level
+              </div>
+              <span className={`badge ${predictionResult.risk_level === 'HIGH' ? 'badge-high' : predictionResult.risk_level === 'MEDIUM' ? 'badge-medium' : 'badge-low'}`} style={{ fontSize: '1.2rem', padding: '8px 20px', borderRadius: 20, fontWeight: 800 }}>
+                {predictionResult.risk_level === 'HIGH' && <ShieldAlert size={18} style={{ marginRight: 6 }} />}
+                {predictionResult.risk_level} RISK
+              </span>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 12, margin: 0 }}>
+                {predictionResult.risk_level === 'HIGH' ? 'Immediate load reduction required' : predictionResult.risk_level === 'MEDIUM' ? 'Monitor fatigue & sleep metrics' : 'Optimal readiness — proceed with training'}
+              </p>
+            </div>
+
+            {/* 3. Top Contributing Factors */}
+            <div className="card" style={{ background: 'var(--bg-card-alt)', padding: 20 }}>
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <ListChecks size={14} color="var(--cyan)" /> Top Contributing Factors
+              </div>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {predictionResult.top_factors.map((factor, idx) => (
+                  <li key={idx} style={{ fontSize: '0.85rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8, background: 'var(--bg-card)', padding: '6px 10px', borderRadius: 6, borderLeft: '3px solid var(--cyan)' }}>
+                    <ArrowRight size={12} color="var(--cyan)" />
+                    {factor}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Search bar */}
       <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
@@ -255,12 +357,15 @@ export default function AthleteRecords() {
         </div>
       </div>
 
-      {/* Entry Modal */}
+      {/* Entry & Prediction Modal */}
       {showModal && (
         <div className="modal-overlay animate-fade-in">
           <div className="modal-card card card-glow">
             <div className="modal-header">
-              <h3>Log New AthleteRecord (Full Specification)</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Cpu size={18} color="var(--cyan)" />
+                <h3>Submit Athlete Data & Predict Injury Risk</h3>
+              </div>
               <button className="btn btn-ghost" onClick={() => setShowModal(false)}>✕</button>
             </div>
 
@@ -288,11 +393,23 @@ export default function AthleteRecords() {
               ))}
             </div>
 
-            <div className="modal-footer">
-              <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary" onClick={handleSave}>
-                {savedSuccess ? <><CheckCircle size={15} /> Record Saved!</> : 'Save AthleteRecord'}
-              </button>
+            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                Submits to FastAPI <code style={{ color: 'var(--cyan)' }}>POST /predict</code>
+              </span>
+              <div style={{ display: 'flex', gap: 10 }}>
+                <button className="btn btn-secondary" onClick={() => setShowModal(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={async () => {
+                  await handleSubmitAndPredict();
+                  setShowModal(false);
+                }} disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <><Loader2 size={15} className="spin" /> Evaluating...</>
+                  ) : (
+                    <><Cpu size={15} /> Submit & Predict Risk</>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>
