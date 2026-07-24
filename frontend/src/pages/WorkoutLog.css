@@ -1,0 +1,66 @@
+.workout-form-card { padding: 24px; }
+
+.workout-filters {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.filter-chip {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+.filter-chip:hover { border-color: var(--border-active); color: var(--text-primary); }
+.filter-chip.active {
+  background: var(--cyan-dim);
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.workout-list { display: flex; flex-direction: column; gap: 10px; }
+
+.workout-card {
+  display: grid;
+  grid-template-columns: 48px 1fr auto auto 80px;
+  align-items: center;
+  gap: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  transition: all 0.2s;
+}
+.workout-card:hover { border-color: rgba(255,255,255,0.12); background: var(--bg-card-hover); }
+.workout-card-emoji { font-size: 1.8rem; text-align: center; }
+.workout-card-sport { font-size: 0.9rem; font-weight: 700; }
+.workout-card-date { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+.workout-card-stats { display: flex; flex-direction: column; gap: 4px; }
+.wc-stat { display: flex; align-items: center; gap: 4px; font-size: 0.78rem; color: var(--text-secondary); }
+.workout-card-load { text-align: right; }
+.rpe-bar-wrap {
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 4px;
+  overflow: hidden;
+  grid-column: 1 / -1;
+}
+.rpe-bar { height: 100%; border-radius: 4px; transition: width 0.5s ease; }
+
+@media (max-width: 768px) {
+  .workout-card {
+    grid-template-columns: 40px 1fr auto;
+    grid-template-rows: auto auto;
+  }
+  .workout-card-load { grid-row: 1; grid-column: 3; }
+  .workout-card-stats { flex-direction: row; gap: 12px; grid-column: 1/-1; }
+  .rpe-bar-wrap { grid-column: 1/-1; }
+}

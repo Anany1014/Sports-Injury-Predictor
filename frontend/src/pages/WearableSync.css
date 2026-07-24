@@ -1,0 +1,78 @@
+.sync-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--green-dim);
+  border: 1px solid rgba(57,255,20,0.3);
+  border-radius: var(--radius-md);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+.sync-banner-pills { display: flex; gap: 8px; margin-left: auto; }
+.pill {
+  background: rgba(0,212,255,0.1);
+  color: var(--cyan);
+  border: 1px solid rgba(0,212,255,0.25);
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.devices-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 20px; }
+
+.device-card { padding: 22px; display: flex; flex-direction: column; gap: 14px; }
+.device-header { display: flex; align-items: flex-start; gap: 12px; }
+.device-logo { font-size: 2rem; flex-shrink: 0; }
+.device-name { font-size: 1rem; font-weight: 700; }
+.device-desc { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+
+.device-metrics { display: flex; flex-wrap: wrap; gap: 6px; }
+.metric-pill {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.device-last-sync {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.device-data-row { display: flex; gap: 20px; }
+.device-data-item { text-align: center; }
+.ddi-val { font-size: 1.3rem; font-weight: 800; }
+.ddi-label { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 2px; }
+
+.sync-btn { width: 100%; justify-content: center; }
+.spin-icon { animation: spin 0.8s linear infinite; }
+
+.sync-steps { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; }
+.sync-step { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; }
+.sync-step-num {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--cyan-dim);
+  border: 1px solid var(--border-active);
+  color: var(--cyan);
+  font-size: 0.82rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.sync-step-icon { font-size: 1.8rem; }
+.sync-step-title { font-size: 0.88rem; font-weight: 700; }
+.sync-step-desc { font-size: 0.78rem; color: var(--text-secondary); }
+
+@media (max-width: 900px) {
+  .devices-grid { grid-template-columns: 1fr; }
+  .sync-steps { grid-template-columns: repeat(2,1fr); }
+}

@@ -1,0 +1,64 @@
+.recovery-layout {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+}
+.recovery-status-card { padding: 24px; }
+.recovery-status-row { display: flex; align-items: center; gap: 0; margin-bottom: 20px; }
+.recovery-metric { flex: 1; text-align: center; }
+.rm-val { font-size: 1.8rem; font-weight: 800; }
+.rm-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+.recovery-divider { width: 1px; height: 48px; background: var(--border); flex-shrink: 0; }
+
+.recovery-recommendation { margin-top: 4px; }
+.rec-alert {
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+.rec-alert.high { background: var(--red-dim); color: #FFB3B3; border: 1px solid rgba(255,68,68,0.3); }
+.rec-alert.medium { background: var(--yellow-dim); color: #FFE566; border: 1px solid rgba(255,215,0,0.3); }
+.rec-alert.low { background: var(--green-dim); color: #80FF60; border: 1px solid rgba(57,255,20,0.3); }
+
+.tips-grid { display: flex; flex-direction: column; gap: 10px; }
+.tip-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  transition: border-color 0.2s;
+}
+.tip-card:hover { border-color: var(--border-active); }
+.tip-icon { font-size: 1.4rem; flex-shrink: 0; width: 36px; text-align: center; }
+.tip-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 3px; }
+.tip-desc { font-size: 0.78rem; color: var(--text-secondary); }
+
+.recovery-protocols-card { padding: 20px; }
+.protocol-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.protocol-row:last-child { border-bottom: none; }
+.protocol-emoji { font-size: 1.3rem; width: 30px; text-align: center; }
+.protocol-name { font-size: 0.85rem; font-weight: 600; }
+.protocol-time { font-size: 0.72rem; color: var(--text-muted); margin-top: 2px; }
+.protocol-benefit {
+  font-size: 0.72rem;
+  background: var(--cyan-dim);
+  color: var(--cyan);
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+@media (max-width: 1024px) {
+  .recovery-layout { grid-template-columns: 1fr; }
+}

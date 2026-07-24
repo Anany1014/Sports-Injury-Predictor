@@ -1,0 +1,59 @@
+.schema-spec-banner { padding: 20px; }
+.ssb-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.schema-pill-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+.schema-pill {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  display: flex;
+  flex-direction: column;
+}
+.sp-name { font-size: 0.72rem; font-weight: 700; color: var(--cyan); }
+.sp-range { font-size: 0.65rem; color: var(--text-muted); margin-top: 1px; }
+
+.records-table-card { padding: 0; overflow: hidden; }
+.table-responsive { overflow-x: auto; }
+.athlete-table { width: 100%; border-collapse: collapse; text-align: left; }
+.athlete-table th {
+  background: var(--bg-secondary);
+  padding: 12px 14px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+}
+.athlete-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+.athlete-table tr:last-child td { border-bottom: none; }
+.athlete-table tr:hover td { background: var(--bg-card-hover); }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-card {
+  width: 100%;
+  max-width: 800px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-grid { gap: 14px; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+.input-error { border-color: var(--red) !important; }
+.field-err-text { font-size: 0.68rem; color: var(--red); margin-top: 2px; }
