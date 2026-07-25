@@ -1,6 +1,23 @@
 # 🏋️ Sports Injury Predictor
 
-A machine learning system that predicts the likelihood of sports injuries based on athlete biometrics, training load, recovery metrics, and historical data.
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688.svg)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-19-61DAFB.svg)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF.svg)](https://vitejs.dev/)
+[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)]()
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
+An end-to-end Machine Learning system and interactive web platform that predicts athlete injury risk based on biometric data, training workload, recovery signals, and historical injury logs.
+
+---
+
+## 🌟 Key Features
+
+- **🧠 Machine Learning Engine**: Advanced gradient boosting algorithms (XGBoost, LightGBM, Random Forest) tuned with class imbalance handling (`scale_pos_weight`) and Acute:Chronic Workload Ratio (ACWR) feature engineering.
+- **⚡ High-Performance FastAPI Backend**: RESTful API providing real-time single and batch prediction endpoints, strict data validation via Pydantic, and automated OpenAPI documentation (`/docs`).
+- **💻 Interactive React Dashboard**: Modern UI built with React 19, Vite, Recharts, and Lucide icons for risk visualization and batch athlete assessments.
+- **🔄 Automated ML Pipeline**: Modular pipeline stages covering data ingestion, preprocessing, rolling-window feature engineering, model training, evaluation, and artifact serialization.
+- **🛡️ Production Ready**: Full test suite (Pytest), static type checking (Mypy), and strict code formatting (Ruff, Oxlint).
 
 ---
 
@@ -8,120 +25,234 @@ A machine learning system that predicts the likelihood of sports injuries based 
 
 ```
 Sports Injury Predictor/
-├── data/
-│   ├── raw/                  # Raw, immutable input data
-│   ├── processed/            # Cleaned & feature-engineered data
-│   └── external/             # External reference datasets
-├── notebooks/
-│   ├── 01_EDA.ipynb          # Exploratory Data Analysis
-│   ├── 02_feature_engineering.ipynb
-│   └── 03_model_experiments.ipynb
-├── model/
-│   ├── src/
-│   │   ├── __init__.py
-│   │   ├── data/             # Data loading & preprocessing
-│   │   ├── features/         # Feature engineering
-│   │   ├── models/           # ML model definitions & training
-│   │   ├── evaluation/       # Model evaluation & metrics
-│   │   └── utils/            # Shared utilities
-│   ├── configs/              # Training & model configs (YAML)
-│   ├── artifacts/            # Saved models, scalers, encoders
-│   └── tests/                # Unit & integration tests
-├── backend/
+├── backend/                  # FastAPI Application
 │   ├── app/
-│   │   ├── api/              # FastAPI route handlers
-│   │   ├── schemas/          # Pydantic request/response schemas
-│   │   ├── services/         # Business logic & ML inference
-│   │   └── core/             # Config, logging, security
-│   └── tests/
-├── frontend/                 # UI (see frontend README)
-├── requirements.txt
-├── requirements-dev.txt
-├── pyproject.toml
-├── Makefile
-└── .env.example
+│   │   ├── api/              # API endpoints (health, predict, batch)
+│   │   ├── core/             # Configuration & environment settings
+│   │   ├── schemas/          # Pydantic data schemas
+│   │   ├── services/         # Model inference & predictor service
+│   │   └── main.py           # FastAPI entrypoint & lifespan events
+│   └── tests/                # API integration & unit tests
+├── frontend/                 # React + Vite Dashboard UI
+│   ├── src/                  # React components & dashboard views
+│   ├── public/               # Static web assets
+│   ├── package.json          # Frontend dependencies & scripts
+│   └── vite.config.js        # Vite configuration
+├── model/                    # ML Core & Pipeline
+│   ├── artifacts/            # Trained models, encoders, and scalers
+│   ├── configs/              # YAML training & hyperparameter configs
+│   ├── src/
+│   │   ├── data/             # Ingestion & preprocessing modules
+│   │   ├── evaluation/       # Performance metrics & reports
+│   │   ├── features/         # Feature engineering & ACWR calculation
+│   │   ├── models/           # Model definitions, training & inference
+│   │   └── utils/            # Helper utilities & logging
+│   └── tests/                # ML pipeline & model unit tests
+├── data/
+│   ├── raw/                  # Raw input datasets
+│   ├── processed/            # Feature-engineered & cleaned data
+│   └── external/             # External reference datasets
+├── notebooks/                # Exploratory Data Analysis & experiments
+├── Makefile                  # Automation commands
+├── pyproject.toml            # Tooling configuration (Ruff, Mypy, Pytest)
+├── requirements.txt          # Core production dependencies
+├── requirements-dev.txt      # Development & testing dependencies
+└── .env.example              # Environment variables template
 ```
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
-### 1. Create & activate a virtual environment
+### Prerequisites
+
+- **Python 3.10+**
+- **Node.js 18+** & **npm**
+
+### 1. Backend & ML Environment Setup
+
 ```bash
+# 1. Clone repository and navigate to root directory
+cd "Sports Injury Predictor"
+
+# 2. Create and activate a Python virtual environment
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-```
+source .venv/bin/activate    # On Windows: .venv\Scripts\activate
 
-### 2. Install dependencies
-```bash
+# 3. Install Python dependencies
 pip install -r requirements.txt
-# For development (linting, testing, notebooks)
 pip install -r requirements-dev.txt
-```
 
-### 3. Set up environment variables
-```bash
+# 4. Configure environment variables
 cp .env.example .env
-# Edit .env with your values
 ```
 
-### 4. Run the full ML pipeline
+### 2. Run ML Pipeline & Start Backend API
+
 ```bash
+# Execute the full pipeline: Ingest -> Preprocess -> Engineer Features -> Train -> Evaluate
 make pipeline
-```
 
-### 5. Start the API server
-```bash
+# Start the FastAPI server (runs on http://localhost:8000)
 make serve
 ```
 
----
+### 3. Frontend Setup & Launch
 
-## 🧠 ML Pipeline
-
-| Step | Script | Description |
-|------|--------|-------------|
-| 1 | `model/src/data/ingest.py` | Load & validate raw data |
-| 2 | `model/src/data/preprocess.py` | Clean, impute, encode |
-| 3 | `model/src/features/engineering.py` | Build features |
-| 4 | `model/src/models/train.py` | Train ML models |
-| 5 | `model/src/evaluation/evaluate.py` | Evaluate & log metrics |
-| 6 | `model/src/models/predict.py` | Run inference |
-
----
-
-## 🔧 Make Commands
+Open a new terminal window:
 
 ```bash
-make pipeline      # Run full data → train → evaluate pipeline
-make train         # Train model only
-make evaluate      # Evaluate trained model
-make serve         # Start FastAPI backend
-make test          # Run all tests
-make lint          # Run ruff + mypy
-make clean         # Remove generated artifacts
+cd frontend
+
+# Install Node dependencies
+npm install
+
+# Start the development server (runs on http://localhost:5173)
+npm run dev
 ```
 
 ---
 
-## 📊 Key Features Used
+## 🔌 API Reference & Documentation
 
-- **Biometrics**: Age, weight, height, BMI, sport type, position
-- **Training Load**: Weekly volume, intensity, acute:chronic workload ratio (ACWR)
-- **Recovery**: Sleep hours, HRV, soreness score, rest days
-- **History**: Prior injuries, days since last injury, injury count
+FastAPI provides automated interactive API documentation accessible when the backend server is running:
+
+- **Swagger UI**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **ReDoc**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+### Core Endpoints
+
+#### 1. Health Check
+`GET /health`
+```json
+{
+  "status": "healthy",
+  "model_loaded": true,
+  "version": "0.1.0"
+}
+```
+
+#### 2. Single Athlete Prediction
+`POST /api/v1/predict`
+
+**Request Payload**:
+```json
+{
+  "athlete_id": "ATH-001",
+  "date": "2026-07-25",
+  "sport": "Football",
+  "position": "Midfielder",
+  "age": 24,
+  "weight_kg": 75.5,
+  "height_cm": 178.0,
+  "weekly_volume_hrs": 12.5,
+  "weekly_intensity_score": 7.2,
+  "sleep_hours": 7.5,
+  "hrv_ms": 65.0,
+  "soreness_score": 3.0,
+  "rest_days": 1,
+  "prior_injuries": 2,
+  "days_since_last_injury": 90.0
+}
+```
+
+**Response Payload**:
+```json
+{
+  "athlete_id": "ATH-001",
+  "injury_probability": 0.18,
+  "injury_risk_label": "LOW",
+  "risk_factors": [
+    "High weekly training load",
+    "Sub-optimal sleep"
+  ],
+  "timestamp": "2026-07-25T17:10:00Z"
+}
+```
+
+#### 3. Batch Prediction
+`POST /api/v1/predict/batch`
+
+Accepts an array of athlete records (up to 100 per request) for bulk evaluations.
 
 ---
 
-## 🤝 Contributing
+## 🧠 ML Features & Model Training
 
-1. Fork the repo
-2. Create a feature branch (`git checkout -b feature/my-feature`)
-3. Commit your changes
-4. Open a Pull Request
+### Engineered Feature Categories
+
+| Feature Group | Indicators |
+|---|---|
+| **Biometrics** | Age, Weight, Height, BMI, Sport Type, Field Position |
+| **Workload & ACWR** | Weekly Volume (hrs), Weekly Intensity (1-10), Acute:Chronic Workload Ratio (7-day / 28-day rolling window) |
+| **Recovery & Fatigue** | Sleep Duration (hrs), Heart Rate Variability (HRV ms), Soreness Score (0-10), Rest Days |
+| **Historical Risk** | Prior Injury Count, Days Elapsed Since Last Injury |
+
+### Hyperparameter Configuration
+
+Model architecture and training settings are specified in `model/configs/training_config.yaml`:
+
+```yaml
+model:
+  name: "sports_injury_predictor"
+  version: "1.0.0"
+  type: "xgboost" # Options: xgboost | lightgbm | random_forest | logistic_regression
+
+xgboost:
+  n_estimators: 300
+  max_depth: 6
+  learning_rate: 0.05
+  scale_pos_weight: 3 # Handles class imbalance
+```
+
+---
+
+## 🔧 Automation & Make Commands
+
+| Command | Action |
+|---|---|
+| `make pipeline` | Runs data ingestion, preprocessing, feature extraction, model training, and evaluation |
+| `make train` | Trains ML model using the latest engineered features |
+| `make evaluate` | Evaluates trained model performance metrics on test split |
+| `make serve` | Launches FastAPI production/development Uvicorn server |
+| `make test` | Executes all Pytest unit and integration test suites |
+| `make lint` | Runs `ruff check` and `mypy` for static analysis |
+| `make format` | Formats Python code using `ruff format` |
+| `make clean` | Removes cached artifacts, bytecode, and compiled temporary files |
+
+---
+
+## 🧪 Testing & Code Quality
+
+### Backend & Model Tests
+
+```bash
+# Run pytest test suite
+pytest
+
+# Type checking and linting
+ruff check .
+mypy model/src backend/app
+```
+
+### Frontend Quality & Build
+
+```bash
+cd frontend
+npm run lint      # Run oxlint
+npm run build     # Validate production bundle build
+```
+
+---
+
+## 👥 Contributors
+
+- **Sanyam Aggarwal** ([@sanyamaggarwal4](https://github.com/sanyamaggarwal4))
+- **Anany Pratyush** ([@Anany1014](https://github.com/Anany1014))
+- **Ojaswini** ([@ojaswiniii07-ai](https://github.com/ojaswiniii07-ai))
 
 ---
 
 ## 📄 License
 
-MIT License © 2026
+Distributed under the MIT License. See `LICENSE` for details.
