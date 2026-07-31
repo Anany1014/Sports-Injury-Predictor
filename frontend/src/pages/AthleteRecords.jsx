@@ -130,6 +130,7 @@ export default function AthleteRecords() {
       const res = await fetch('http://localhost:8000/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formattedRecord),
       });
 
@@ -284,7 +285,7 @@ export default function AthleteRecords() {
                 <XAxis dataKey="bin" tick={{ fill: '#94A3B8', fontSize: 10 }} />
                 <YAxis tick={{ fill: '#94A3B8', fontSize: 10 }} />
                 <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }} />
-                <Bar dataKey="count" name="Days Logged" fill="rgba(0,212,255,0.7)" radius={[4,4,0,0]} />
+                <Bar dataKey="count" name="Days Logged" fill="rgba(0,212,255,0.7)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -298,7 +299,7 @@ export default function AthleteRecords() {
                 <XAxis dataKey="bin" tick={{ fill: '#94A3B8', fontSize: 10 }} />
                 <YAxis tick={{ fill: '#94A3B8', fontSize: 10 }} />
                 <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }} />
-                <Bar dataKey="count" name="Days Logged" fill="rgba(124,58,237,0.7)" radius={[4,4,0,0]} />
+                <Bar dataKey="count" name="Days Logged" fill="rgba(124,58,237,0.7)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -312,7 +313,7 @@ export default function AthleteRecords() {
                 <XAxis type="number" tick={{ fill: '#94A3B8', fontSize: 10 }} domain={[0, 35]} />
                 <YAxis dataKey="feature" type="category" tick={{ fill: '#94A3B8', fontSize: 9 }} width={100} />
                 <Tooltip contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border)', fontSize: 11 }} />
-                <Bar dataKey="importance" name="Weight %" radius={[0,4,4,0]}>
+                <Bar dataKey="importance" name="Weight %" radius={[0, 4, 4, 0]}>
                   {TRAINING_DATASET_HISTOGRAMS.shapImportance.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}

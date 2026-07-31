@@ -1,0 +1,143 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\Anany Pratyush\Documents\GitHub\Sports-Injury-Predictor\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Anany Pratyush\Documents\GitHub\Sports-Injury-Predictor
+configfile: pyproject.toml
+testpaths: model/tests, backend/tests
+plugins: anyio-4.14.2, asyncio-1.4.0, cov-7.1.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 53 items
+
+model/tests/test_evaluate_metrics.py::test_perfect_predictions PASSED    [  1%]
+model/tests/test_evaluate_metrics.py::test_high_recall_priority PASSED   [  3%]
+model/tests/test_evaluate_metrics.py::test_zero_division_safety PASSED   [  5%]
+model/tests/test_features.py::test_recovery_score_range PASSED           [  7%]
+model/tests/test_features.py::test_high_injury_history_flag PASSED       [  9%]
+model/tests/test_features.py::test_recent_injury_flag PASSED             [ 11%]
+model/tests/test_ingest.py::test_validate_schema_passes_with_all_columns PASSED [ 13%]
+model/tests/test_ingest.py::test_validate_schema_raises_on_missing_column PASSED [ 15%]
+model/tests/test_ingest.py::test_basic_quality_checks_removes_duplicates PASSED [ 16%]
+model/tests/test_ingest.py::test_basic_quality_checks_removes_null_target PASSED [ 18%]
+model/tests/test_preprocess.py::TestRemoveDuplicates::test_removes_exact_duplicates PASSED [ 20%]
+model/tests/test_preprocess.py::TestRemoveDuplicates::test_no_duplicates_unchanged PASSED [ 22%]
+model/tests/test_preprocess.py::TestRemoveDuplicates::test_index_reset_after_dedup PASSED [ 24%]
+model/tests/test_preprocess.py::TestImputeNumeric::test_fills_nan_with_median PASSED [ 26%]
+model/tests/test_preprocess.py::TestImputeNumeric::test_fit_false_uses_provided_medians PASSED [ 28%]
+model/tests/test_preprocess.py::TestImputeCategorical::test_fills_nan_with_mode PASSED [ 30%]
+model/tests/test_preprocess.py::TestImputeCategorical::test_fit_false_uses_provided_modes PASSED [ 32%]
+model/tests/test_preprocess.py::TestOneHotEncode::test_encodes_categorical_cols PASSED [ 33%]
+model/tests/test_preprocess.py::TestOneHotEncode::test_inference_mode_uses_fitted_encoder PASSED [ 35%]
+model/tests/test_preprocess.py::TestStandardiseNumeric::test_output_has_zero_mean_and_unit_std PASSED [ 37%]
+model/tests/test_preprocess.py::TestEndToEndPipeline::test_pipeline_fit_and_transform PASSED [ 39%]
+model/tests/test_saved_model.py::test_joblib_artifacts_exist PASSED      [ 41%]
+model/tests/test_saved_model.py::test_load_and_predict_with_joblib PASSED [ 43%]
+model/tests/test_split.py::TestSplitSize::test_train_is_80_percent PASSED [ 45%]
+model/tests/test_split.py::TestSplitSize::test_test_is_20_percent PASSED [ 47%]
+model/tests/test_split.py::TestSplitSize::test_total_rows_preserved PASSED [ 49%]
+model/tests/test_split.py::TestSplitSize::test_custom_test_size PASSED   [ 50%]
+model/tests/test_split.py::TestStratification::test_balanced_class_ratio_in_train PASSED [ 52%]
+model/tests/test_split.py::TestStratification::test_balanced_class_ratio_in_test PASSED [ 54%]
+model/tests/test_split.py::TestStratification::test_imbalanced_ratio_preserved_in_train PASSED [ 56%]
+model/tests/test_split.py::TestStratification::test_imbalanced_ratio_preserved_in_test PASSED [ 58%]
+model/tests/test_split.py::TestStratification::test_class_counts_correct_balanced PASSED [ 60%]
+model/tests/test_split.py::TestNoLeakage::test_train_test_rows_are_disjoint PASSED [ 62%]
+model/tests/test_split.py::TestNoLeakage::test_index_reset_no_gaps PASSED [ 64%]
+model/tests/test_split.py::TestReproducibility::test_same_seed_same_split PASSED [ 66%]
+model/tests/test_split.py::TestReproducibility::test_different_seed_different_split PASSED [ 67%]
+model/tests/test_split.py::TestColumns::test_all_feature_cols_in_train PASSED [ 69%]
+model/tests/test_split.py::TestColumns::test_all_feature_cols_in_test PASSED [ 71%]
+model/tests/test_split.py::TestColumns::test_target_present_in_both PASSED [ 73%]
+model/tests/test_split.py::TestErrors::test_raises_on_missing_target_col PASSED [ 75%]
+model/tests/test_split.py::TestErrors::test_raises_on_single_class PASSED [ 77%]
+model/tests/test_two_stage_cascade.py::test_two_stage_cascade_fit_and_predict PASSED [ 79%]
+model/tests/test_two_stage_cascade.py::test_saved_cascade_artifacts PASSED [ 81%]
+backend/tests/test_api.py::test_health_endpoint PASSED                   [ 83%]
+backend/tests/test_api.py::test_predict_single_returns_200 PASSED        [ 84%]
+backend/tests/test_api.py::test_predict_single_invalid_age_returns_422 PASSED [ 86%]
+backend/tests/test_security.py::test_unauthenticated_request_returns_401 PASSED [ 88%]
+backend/tests/test_security.py::test_athlete_cannot_access_other_athlete_record PASSED [ 90%]
+backend/tests/test_security.py::test_athlete_can_access_own_record PASSED [ 92%]
+backend/tests/test_security.py::test_coach_cannot_access_diff_sport_record FAILED [ 94%]
+backend/tests/test_security.py::test_coach_can_access_own_sport_record FAILED [ 96%]
+backend/tests/test_security.py::test_security_headers_are_present PASSED [ 98%]
+backend/tests/test_security.py::test_xss_in_identifiers_is_sanitized FAILED [100%]
+
+================================== FAILURES ===================================
+_________________ test_coach_cannot_access_diff_sport_record __________________
+
+client = <starlette.testclient.TestClient object at 0x0000028641680F20>
+
+    def test_coach_cannot_access_diff_sport_record(client: TestClient) -> None:
+        # Authenticate as Coach Dan (Sport: Football)
+        token = create_access_token({"sub": "coach_dan", "role": "Coach", "sport": "Football"})
+        client.cookies.set("access_token", token)
+    
+        # Request prediction for Bob (Basketball)
+        resp = client.post("/api/v1/predict", json=ATHLETE_BOB_RECORD)
+>       assert resp.status_code == 403
+E       assert 429 == 403
+E        +  where 429 = <Response [429 Too Many Requests]>.status_code
+
+backend\tests\test_security.py:105: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+2026-07-31 01:20:18 | INFO     | model.src.models.predict | Artifacts loaded \u2713
+----------------------------- Captured log setup ------------------------------
+INFO     model.src.models.predict:predict.py:66 Artifacts loaded \u2713
+___________________ test_coach_can_access_own_sport_record ____________________
+
+client = <starlette.testclient.TestClient object at 0x000002868ED52750>
+
+    def test_coach_can_access_own_sport_record(client: TestClient) -> None:
+        # Authenticate as Coach Dan (Sport: Football)
+        token = create_access_token({"sub": "coach_dan", "role": "Coach", "sport": "Football"})
+        client.cookies.set("access_token", token)
+    
+        resp = client.post("/api/v1/predict", json=ATHLETE_ALEX_RECORD)
+>       assert resp.status_code == 200
+E       assert 429 == 200
+E        +  where 429 = <Response [429 Too Many Requests]>.status_code
+
+backend\tests\test_security.py:115: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+2026-07-31 01:20:19 | INFO     | model.src.models.predict | Artifacts loaded \u2713
+----------------------------- Captured log setup ------------------------------
+INFO     model.src.models.predict:predict.py:66 Artifacts loaded \u2713
+____________________ test_xss_in_identifiers_is_sanitized _____________________
+
+client = <starlette.testclient.TestClient object at 0x0000028694BA8860>
+
+    def test_xss_in_identifiers_is_sanitized(client: TestClient) -> None:
+        token = create_access_token({"sub": "admin", "role": "Admin"})
+        client.cookies.set("access_token", token)
+    
+        malicious_record = {
+            **ATHLETE_ALEX_RECORD,
+            "athlete_id": "ATH-<script>alert(1)</script>",  # XSS
+        }
+        resp = client.post("/api/v1/predict", json=malicious_record)
+        # Pydantic field regex validator restricts special chars like '<' and '>' returning 422
+>       assert resp.status_code == 422
+E       assert 429 == 422
+E        +  where 429 = <Response [429 Too Many Requests]>.status_code
+
+backend\tests\test_security.py:141: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+2026-07-31 01:20:19 | INFO     | model.src.models.predict | Artifacts loaded \u2713
+----------------------------- Captured log setup ------------------------------
+INFO     model.src.models.predict:predict.py:66 Artifacts loaded \u2713
+============================== warnings summary ===============================
+.venv\Lib\site-packages\fastapi\testclient.py:1
+  C:\Users\Anany Pratyush\Documents\GitHub\Sports-Injury-Predictor\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+    from starlette.testclient import TestClient as TestClient  # noqa
+
+backend/tests/test_api.py::test_predict_single_returns_200
+backend/tests/test_security.py::test_athlete_can_access_own_record
+  C:\Users\Anany Pratyush\Documents\GitHub\Sports-Injury-Predictor\.venv\Lib\site-packages\sklearn\utils\validation.py:2820: UserWarning: X has feature names, but StandardScaler was fitted without feature names
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED backend/tests/test_security.py::test_coach_cannot_access_diff_sport_record
+FAILED backend/tests/test_security.py::test_coach_can_access_own_sport_record
+FAILED backend/tests/test_security.py::test_xss_in_identifiers_is_sanitized
+================== 3 failed, 50 passed, 3 warnings in 21.96s ==================

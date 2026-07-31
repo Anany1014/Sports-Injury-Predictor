@@ -1,17 +1,15 @@
-"""
-backend.app.services.predictor_service
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Business-logic layer: wraps the ML InjuryPredictor for the API.
-"""
-from __future__ import annotations
-
+import os
+import json
+import logging
 import pandas as pd
 
 from backend.app.core.config import settings
+from backend.app.core.privacy import pseudonymizer, biometric_encryptor
 from backend.app.schemas.prediction import AthleteRecord, PredictionResponse
 from model.src.models.predict import InjuryPredictor
 
 MODEL_VERSION = "1.0.0"
+logger = logging.getLogger(__name__)
 
 
 class PredictorService:
@@ -61,10 +59,62 @@ class PredictorService:
 
         return factors[:3]
 
+    def _save_to_secure_audit_log(self, record: AthleteRecord, risk_label: str) -> None:
+        """Securely logs the prediction event with pseudonymized IDs and encrypted health metrics."""
+        # 1. Pseudonymize the athlete ID
+        pseudo_id = pseudonymizer.pseudonymize(record.athlete_id)
+
+        # 2. Extract and encrypt sensitive metrics (HIPAA/GDPR Compliance)
+        sensitive_data = {
+            "age": record.age,
+            "weight_kg": record.weight_kg,
+            "height_cm": record.height_cm,
+            "weekly_volume_hrs": record.weekly_volume_hrs,
+            "weekly_intensity_score": record.weekly_intensity_score,
+            "sleep_hours": record.sleep_hours,
+            "hrv_ms": record.hrv_ms,
+            "soreness_score": record.soreness_score,
+            "rest_days": record.rest_days,
+            "prior_injuries": record.prior_injuries,
+            "days_since_last_injury": record.days_since_last_injury,
+            "sport": record.sport,
+            "position": record.position
+        }
+        encrypted_metrics = biometric_encryptor.encrypt_data(sensitive_data)
+
+        # 3. Log securely without exposing PHI
+        logger.info(f"AUDIT LOG: Secure prediction requested for {pseudo_id} with injury risk: {risk_label}")
+
+        # 4. Save to disk to satisfy 'at-rest' requirement
+        audit_file_path = os.path.join(settings.artifacts_dir, "secure_predictions_audit.json")
+        audit_record = {
+            "timestamp": record.date,
+            "athlete_pseudonym": pseudo_id,
+            "encrypted_biometrics": encrypted_metrics,
+            "injury_risk_label": risk_label
+        }
+
+        try:
+            records = []
+            if os.path.exists(audit_file_path):
+                with open(audit_file_path, "r", encoding="utf-8") as f:
+                    try:
+                        records = json.load(f)
+                    except json.JSONDecodeError:
+                        pass
+            records.append(audit_record)
+            with open(audit_file_path, "w", encoding="utf-8") as f:
+                json.dump(records, f, indent=2)
+        except Exception as e:
+            logger.error(f"Failed to write secure audit log: {e}")
+
     def predict_one(self, record: AthleteRecord) -> PredictionResponse:
         record_dict = record.model_dump()
         result = self._predictor.predict_single(record_dict)
         factors = self._get_top_factors(record_dict)
+
+        # Persist secure audit log (HIPAA compliant)
+        self._save_to_secure_audit_log(record, result["injury_risk_label"])
 
         return PredictionResponse(
             athlete_id=record.athlete_id,
@@ -81,13 +131,19 @@ class PredictorService:
         for i, record in enumerate(records):
             record_dict = record.model_dump()
             factors = self._get_top_factors(record_dict)
+            risk_label = str(result_df["injury_risk_label"].iloc[i])
+
+            # Persist secure audit log (HIPAA compliant)
+            self._save_to_secure_audit_log(record, risk_label)
+
             responses.append(
                 PredictionResponse(
                     athlete_id=record.athlete_id,
                     injury_probability=float(result_df["injury_probability"].iloc[i]),
-                    injury_risk_label=str(result_df["injury_risk_label"].iloc[i]),
+                    injury_risk_label=risk_label,
                     top_contributing_factors=factors,
                     model_version=MODEL_VERSION,
                 )
             )
         return responses
+

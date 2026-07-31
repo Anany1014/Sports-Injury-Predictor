@@ -28,7 +28,7 @@ class EnvSettings(BaseSettings):
         "sports-injury-predictor", alias="MLFLOW_EXPERIMENT_NAME"
     )
 
-    model_config = {"env_file": ".env", "populate_by_name": True}
+    model_config = {"env_file": ".env", "populate_by_name": True, "extra": "ignore"}
 
 
 # ---------------------------------------------------------------------------

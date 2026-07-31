@@ -1,10 +1,9 @@
-// src/components/layout/Sidebar.jsx
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, User, Activity, Map, Dumbbell,
-  TrendingUp, Heart, Bluetooth, ChevronRight, FileText
+  TrendingUp, Heart, Bluetooth, ChevronRight, FileText, LogOut
 } from 'lucide-react';
-import { useAthlete } from '../../context/AthleteContext';
+import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
 const navItems = [
@@ -14,14 +13,33 @@ const navItems = [
   { to: '/workout', icon: Dumbbell, label: 'Workout Log' },
   { to: '/acwr', icon: TrendingUp, label: 'ACWR Monitor' },
   { to: '/recovery', icon: Heart, label: 'Recovery' },
-  { to: '/records', icon: FileText, label: 'Assessment Records' },
+  { to: '/records', icon: FileText, label: 'Assessment Records', restrictedRoles: ['Coach', 'Medical Staff', 'Admin'] },
   { to: '/wearable', icon: Bluetooth, label: 'Wearable Sync' },
 ];
 
+const getPrettyName = (username) => {
+  switch (username) {
+    case 'alex': return 'Alex Rivera';
+    case 'coach_dan': return 'Dan Miller';
+    case 'physio_sarah': return 'Sarah Jenkins';
+    case 'admin': return 'System Admin';
+    default: return username;
+  }
+};
+
 export default function Sidebar() {
-  const { profile } = useAthlete();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const initials = profile.name ? profile.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : 'AT';
+
+  if (!user) return null;
+
+  const displayName = getPrettyName(user.username);
+  const initials = displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+  // Filter items matching user permissions
+  const filteredItems = navItems.filter(item =>
+    !item.restrictedRoles || item.restrictedRoles.includes(user.role)
+  );
 
   return (
     <nav className="sidebar">
@@ -35,7 +53,7 @@ export default function Sidebar() {
 
       <div className="sidebar-nav">
         <span className="sidebar-section-label">Main</span>
-        {navItems.map(({ to, icon: Icon, label }) => (
+        {filteredItems.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
@@ -52,12 +70,42 @@ export default function Sidebar() {
         <div className="sidebar-profile-mini" onClick={() => navigate('/profile')}>
           <div className="profile-avatar">{initials}</div>
           <div className="profile-info">
-            <div className="profile-name">{profile.name || 'Set Up Profile'}</div>
-            <div className="profile-sport">{profile.sport || 'Athlete'}</div>
+            <div className="profile-name">{displayName}</div>
+            <div className="profile-sport">{user.role}</div>
           </div>
-          <ChevronRight size={14} color="var(--text-muted)" />
         </div>
+        <button
+          className="btn-logout-sidebar"
+          onClick={logout}
+          title="Sign Out Session"
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 8,
+            borderRadius: 6,
+            color: 'var(--text-muted)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s',
+            marginTop: 10,
+            width: '100%'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = 'var(--red)';
+            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = 'var(--text-muted)';
+            e.currentTarget.style.background = 'none';
+          }}
+        >
+          <LogOut size={16} style={{ marginRight: 8 }} />
+          <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Logout</span>
+        </button>
       </div>
     </nav>
   );
 }
+

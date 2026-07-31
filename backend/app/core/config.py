@@ -19,7 +19,18 @@ class Settings(BaseSettings):
     artifacts_dir: Path = Field(Path("model/artifacts"), alias="ARTIFACTS_DIR")
     cors_origins: list[str] = ["http://localhost:3000", "http://localhost:5173"]
 
-    model_config = {"env_file": ".env", "populate_by_name": True}
+    # Security configuration
+    secret_key: str = Field("change-me-in-production", alias="SECRET_KEY")
+    jwt_secret_key: str = Field("jwt-secret-key-change-me-in-production-1234567890", alias="JWT_SECRET_KEY")
+    jwt_algorithm: str = Field("HS256", alias="JWT_ALGORITHM")
+    # 32-byte base64 key for AES-256 GCM encryption (default decodes to 'test_key_test_key_test_key_test_key')
+    encryption_key: str = Field("dGVzdF9rZXlfdGVzdF9rZXlfdGVzdF9rZXlfdGVzdF9rZXk=", alias="ENCRYPTION_KEY")
+    
+    # Rate Limiting
+    prediction_rate_limit: str = Field("5/minute", alias="PREDICTION_RATE_LIMIT")
+
+    model_config = {"env_file": ".env", "populate_by_name": True, "extra": "ignore"}
 
 
 settings = Settings()
+

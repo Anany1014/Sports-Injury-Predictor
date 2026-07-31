@@ -30,6 +30,9 @@ SAMPLE_ATHLETE = {
 }
 
 
+from collections.abc import Generator
+from backend.app.core.security import create_access_token
+
 @pytest.fixture()
 def mock_predictor_service() -> MagicMock:
     svc = MagicMock()
@@ -43,14 +46,25 @@ def mock_predictor_service() -> MagicMock:
 
 
 @pytest.fixture()
-def client(mock_predictor_service: MagicMock) -> TestClient:
+def client(mock_predictor_service: MagicMock) -> Generator[TestClient, None, None]:
+    # Set app_env to testing to bypass rate limiter
+    from backend.app.core.config import settings
+    original_env = settings.app_env
+    settings.app_env = "testing"
+
     app = create_app()
 
     # Bypass the real lifespan (no model on disk in CI)
     app.state.predictor = mock_predictor_service
 
     with TestClient(app, raise_server_exceptions=True) as c:
+        # Bake a valid JWT and inject into client cookie
+        token = create_access_token({"sub": "admin", "role": "Admin"})
+        c.cookies.set("access_token", token)
         yield c
+
+    # Restore environment setting
+    settings.app_env = original_env
 
 
 def test_health_endpoint(client: TestClient) -> None:
