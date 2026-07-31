@@ -27,7 +27,7 @@ const getPrettyName = (username) => {
   }
 };
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -42,7 +42,7 @@ export default function Sidebar() {
   );
 
   return (
-    <nav className="sidebar">
+    <nav className={`sidebar ${isOpen ? 'open' : ''}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">⚡</div>
         <div className="sidebar-logo-text">
@@ -59,6 +59,7 @@ export default function Sidebar() {
             to={to}
             end={to === '/'}
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+            onClick={onClose}
           >
             <Icon className="nav-icon" size={18} />
             {label}
@@ -67,7 +68,7 @@ export default function Sidebar() {
       </div>
 
       <div className="sidebar-bottom">
-        <div className="sidebar-profile-mini" onClick={() => navigate('/profile')}>
+        <div className="sidebar-profile-mini" onClick={() => { navigate('/profile'); onClose && onClose(); }}>
           <div className="profile-avatar">{initials}</div>
           <div className="profile-info">
             <div className="profile-name">{displayName}</div>
@@ -108,4 +109,5 @@ export default function Sidebar() {
     </nav>
   );
 }
+
 

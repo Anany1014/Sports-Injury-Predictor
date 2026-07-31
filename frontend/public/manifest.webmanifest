@@ -1,0 +1,24 @@
+{
+    "name": "AthletIQ Athlete Intelligence Platform",
+    "short_name": "AthletIQ",
+    "description": "Athlete Intelligence Platform for performance monitoring, injury prevention, and recovery planning.",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "background_color": "#080C18",
+    "theme_color": "#080C18",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "/icons.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ]
+}

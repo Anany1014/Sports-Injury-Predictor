@@ -3,17 +3,53 @@
   grid-template-columns: 1fr 1fr;
   gap: 20px;
 }
-.acwr-ratio-card { padding: 28px; display: flex; flex-direction: column; align-items: center; text-align: center; }
-.acwr-ratio-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
-.acwr-ratio-big { font-size: 4.5rem; font-weight: 900; line-height: 1; margin-bottom: 12px; }
-.acwr-zone-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 700;
+
+.acwr-ratio-card {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.acwr-ratio-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   margin-bottom: 8px;
 }
-.acwr-hint { font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 20px; }
 
-.acwr-gauge-wrap { width: 100%; margin-top: 8px; }
+.acwr-ratio-big {
+  font-size: 4.5rem;
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.acwr-zone-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.acwr-hint {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.acwr-gauge-wrap {
+  width: 100%;
+  margin-top: 8px;
+}
+
 .acwr-gauge {
   display: flex;
   height: 10px;
@@ -22,7 +58,11 @@
   position: relative;
   margin-bottom: 4px;
 }
-.gauge-zone { height: 100%; }
+
+.gauge-zone {
+  height: 100%;
+}
+
 .gauge-needle {
   position: absolute;
   top: -4px;
@@ -31,9 +71,10 @@
   background: #fff;
   border-radius: 2px;
   transform: translateX(-50%);
-  box-shadow: 0 0 6px rgba(255,255,255,0.6);
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
   transition: left 0.5s ease;
 }
+
 .gauge-labels {
   display: flex;
   justify-content: space-between;
@@ -42,18 +83,65 @@
   margin-top: 4px;
 }
 
-.acwr-loads { display: flex; flex-direction: column; gap: 16px; }
-.acwr-load-card { padding: 20px; }
-.acwr-load-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-.acwr-load-val { font-size: 2rem; font-weight: 800; }
-.acwr-load-sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
-.acwr-info-card { padding: 18px; }
+.acwr-loads {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 
-.zone-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); }
-.zone-row:last-child { border-bottom: none; }
-.zone-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.acwr-load-card {
+  padding: 20px;
+}
 
-.weekly-load-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; }
+.acwr-load-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.acwr-load-val {
+  font-size: 2rem;
+  font-weight: 800;
+}
+
+.acwr-load-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.acwr-info-card {
+  padding: 18px;
+}
+
+.zone-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.zone-row:last-child {
+  border-bottom: none;
+}
+
+.zone-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.weekly-load-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
 .weekly-load-card {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -63,6 +151,17 @@
 }
 
 @media (max-width: 900px) {
-  .acwr-hero { grid-template-columns: 1fr; }
-  .weekly-load-grid { grid-template-columns: repeat(2,1fr); }
+  .acwr-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .weekly-load-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .weekly-load-grid {
+    grid-template-columns: 1fr;
+  }
 }
