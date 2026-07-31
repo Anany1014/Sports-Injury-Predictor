@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from backend.app.api import health, predict, auth
+from backend.app.api import health, predict, auth, recommendations
 from backend.app.core.config import settings
 from backend.app.core.middleware import SecurityHeadersMiddleware, rate_limit_middleware
 from backend.app.services.predictor_service import PredictorService
@@ -104,6 +104,8 @@ def create_app() -> FastAPI:
     application.include_router(auth.router, prefix="/api/v1", tags=["Authentication (v1)"])
     application.include_router(predict.router, tags=["Prediction"])
     application.include_router(predict.router, prefix="/api/v1", tags=["Prediction (v1)"])
+    application.include_router(recommendations.router, tags=["AI Recommendations"])
+    application.include_router(recommendations.router, prefix="", tags=["AI Recommendations (root)"])
 
     return application
 

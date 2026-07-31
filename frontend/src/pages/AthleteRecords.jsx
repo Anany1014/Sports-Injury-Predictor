@@ -1,6 +1,7 @@
 // src/pages/AthleteRecords.jsx
 import { useState } from 'react';
 import { useAthlete } from '../context/AthleteContext';
+import { predictInjuryRisk, formatAthleteId } from '../services/api';
 import {
   Plus, Download, Upload, CheckCircle, AlertTriangle, FileText, Search,
   Activity, ShieldAlert, Cpu, ListChecks, ArrowRight, Loader2, BarChart2, TrendingUp
@@ -107,7 +108,7 @@ export default function AthleteRecords() {
     setIsSubmitting(true);
 
     const formattedRecord = {
-      athlete_id: String(form.athlete_id).trim(),
+      athlete_id: formatAthleteId(form.athlete_id),
       date: String(form.date),
       sport: String(form.sport).trim(),
       position: String(form.position).trim(),
@@ -127,21 +128,13 @@ export default function AthleteRecords() {
     addAthleteRecord(formattedRecord);
 
     try {
-      const res = await fetch('http://localhost:8000/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(formattedRecord),
-      });
-
-      if (!res.ok) throw new Error(`API status ${res.status}`);
-
-      const data = await res.json();
+      const data = await predictInjuryRisk(formattedRecord);
       setPredictionResult({
         athlete_id: data.athlete_id,
         injury_probability: data.injury_probability,
         injury_probability_pct: Math.round(data.injury_probability * 100),
         risk_level: data.injury_risk_label,
+        model_version: data.model_version || '1.0.0',
         top_factors: data.top_contributing_factors || [
           'High Weekly Intensity Score',
           'Sleep Hours Below Baseline',

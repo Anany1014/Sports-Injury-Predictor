@@ -23,6 +23,15 @@ class PredictorService:
 
     def _get_top_factors(self, record_dict: dict) -> list[str]:
         factors = []
+
+        # Sport and Position biomechanical factor
+        sport = str(record_dict.get("sport", "")).strip()
+        position = str(record_dict.get("position", "")).strip()
+        
+        high_risk_positions = ["Fast Bowler", "Pitcher", "Prop", "Hooker", "Forward", "Midfielder", "Marathoner"]
+        if any(hrp.lower() in position.lower() for hrp in high_risk_positions):
+            factors.append(f"High-Impact Sport Position ({position} in {sport})")
+
         # Intensity factor
         intensity = record_dict.get("weekly_intensity_score", 0)
         if intensity >= 7.5:

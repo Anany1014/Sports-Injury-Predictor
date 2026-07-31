@@ -66,10 +66,10 @@ class AthleteRecord(BaseModel):
     @classmethod
     def sanitize_text(cls, v: str) -> str:
         v = v.strip()
-        # Prevent SQL injection/CSS escaping: permit only characters, numbers, spaces, dash and underscore
-        if not re.match(r"^[a-zA-Z0-9\s_-]+$", v):
+        # Permit letters, numbers, spaces, dash, underscore, slashes and parentheses
+        if not re.match(r"^[a-zA-Z0-9\s_\-\/\(\)\,]+$", v):
             raise ValueError(
-                "text fields must only contain alphanumeric characters, spaces, dashes or underscores"
+                "text fields must only contain alphanumeric characters, spaces, dashes, slashes, or parentheses"
             )
         return html.escape(v)
 
@@ -81,7 +81,7 @@ class PredictionResponse(BaseModel):
     injury_probability: float = Field(..., ge=0.0, le=1.0, description="Probability of injury (0–1)")
     injury_risk_label: str = Field(..., description="LOW | MEDIUM | HIGH")
     top_contributing_factors: list[str] = Field(default_factory=list, description="Top factors contributing to injury risk")
-    model_version: str
+    model_version: str = Field(default="xgboost-v1.0", description="Model version used for prediction")
 
 
 class BatchPredictionRequest(BaseModel):

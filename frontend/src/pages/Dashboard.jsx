@@ -4,6 +4,7 @@ import { useAthlete } from '../context/AthleteContext';
 import { getReadinessLabel, getACWRZone } from '../utils/calculations';
 import { Activity, TrendingUp, Zap, Heart, Moon, ArrowRight, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 import { LineChart, Line, XAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import InjuryPredictorSection from '../components/InjuryPredictorSection';
 import './Dashboard.css';
 
 function ReadinessRing({ score }) {
@@ -33,20 +34,42 @@ function ReadinessRing({ score }) {
   );
 }
 
-function InjuryRiskCard({ risk }) {
+function InjuryRiskCard({ risk, mlPrediction, isMlLoading }) {
+  const normalizedRisk = mlPrediction?.injury_risk_label || risk || 'Low';
+  const formattedRisk = normalizedRisk.charAt(0).toUpperCase() + normalizedRisk.slice(1).toLowerCase();
+  
   const cfg = {
-    Low: { cls: 'badge-low', icon: CheckCircle, msg: 'Training is safe today' },
-    Medium: { cls: 'badge-medium', icon: AlertTriangle, msg: 'Monitor workload carefully' },
-    High: { cls: 'badge-high', icon: AlertTriangle, msg: 'Consider rest or light activity' },
+    Low: { cls: 'badge-low', icon: CheckCircle, msg: 'Training is safe today based on ML metrics' },
+    Medium: { cls: 'badge-medium', icon: AlertTriangle, msg: 'Monitor workload and fatigue carefully' },
+    High: { cls: 'badge-high', icon: AlertTriangle, msg: 'Elevated injury probability — consider rest or light load' },
   };
-  const { cls, icon: Icon, msg } = cfg[risk] || cfg.Low;
+  const { cls, icon: Icon, msg } = cfg[formattedRisk] || cfg.Low;
+  const probabilityPct = mlPrediction ? Math.round(mlPrediction.injury_probability * 100) : null;
+
   return (
     <div className="injury-card">
       <div className="injury-card-header">
-        <span className="injury-label">Injury Risk</span>
-        <span className={`badge ${cls}`}><Icon size={11} />{risk}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span className="injury-label">Injury Risk</span>
+          <span style={{ fontSize: '0.65rem', background: 'rgba(0, 212, 255, 0.15)', color: '#00D4FF', border: '1px solid rgba(0, 212, 255, 0.3)', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>
+            ML Model v1.0
+          </span>
+        </div>
+        <span className={`badge ${cls}`}><Icon size={11} />{formattedRisk} {probabilityPct !== null ? `(${probabilityPct}%)` : ''}</span>
       </div>
       <p className="injury-msg">{msg}</p>
+      {mlPrediction?.top_contributing_factors?.length > 0 && (
+        <div style={{ marginTop: 10, paddingTop: 8, borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginBottom: 4, textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600 }}>
+            Top Contributing Factors:
+          </span>
+          <ul style={{ margin: 0, paddingLeft: 16, fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+            {mlPrediction.top_contributing_factors.map((f, idx) => (
+              <li key={idx} style={{ marginBottom: 2 }}>{f}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }
@@ -76,12 +99,15 @@ const journeySteps = [
 ];
 
 export default function Dashboard() {
-  const { todayLog, workouts, acwr, injuryRisk, profile } = useAthlete();
+  const { todayLog = null, workouts = [], acwr = { ratio: 0, acuteLoad: 0, chronicLoad: 0 }, injuryRisk = 'Low', profile = {}, mlPrediction = null, isMlLoading = false } = useAthlete() || {};
   const navigate = useNavigate();
-  const zone = getACWRZone(acwr.ratio);
+  const safeWorkouts = Array.isArray(workouts) ? workouts : [];
+  const safeAcwr = acwr || { ratio: 0, acuteLoad: 0, chronicLoad: 0 };
+  const safeProfile = profile || {};
+  const zone = getACWRZone(safeAcwr.ratio || 0);
 
   const today = new Date().toISOString().split('T')[0];
-  const todayWorkout = workouts.find(w => w.date === today);
+  const todayWorkout = safeWorkouts.find(w => w && w.date === today);
 
   const completedSteps = [
     todayLog ? 'morning' : null,
@@ -94,8 +120,8 @@ export default function Dashboard() {
   for (let i = 6; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i);
     const ds = d.toISOString().split('T')[0];
-    const ws = workouts.filter(w => w.date === ds);
-    const load = ws.reduce((s, w) => s + w.load, 0);
+    const ws = safeWorkouts.filter(w => w && w.date === ds);
+    const load = ws.reduce((s, w) => s + (w.load || 0), 0);
     last7.push({ label: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()], load });
   }
 
@@ -104,8 +130,8 @@ export default function Dashboard() {
     const d = new Date(); d.setDate(d.getDate() - i);
     const start7 = new Date(d); start7.setDate(start7.getDate() - 6);
     const start28 = new Date(d); start28.setDate(start28.getDate() - 27);
-    const ac = workouts.filter(w => new Date(w.date) >= start7 && new Date(w.date) <= d).reduce((s, w) => s + w.load, 0);
-    const ch = workouts.filter(w => new Date(w.date) >= start28 && new Date(w.date) <= d).reduce((s, w) => s + w.load, 0) / 4;
+    const ac = safeWorkouts.filter(w => w && new Date(w.date) >= start7 && new Date(w.date) <= d).reduce((s, w) => s + (w.load || 0), 0);
+    const ch = safeWorkouts.filter(w => w && new Date(w.date) >= start28 && new Date(w.date) <= d).reduce((s, w) => s + (w.load || 0), 0) / 4;
     acwrSparkData.push({ label: `${d.getMonth()+1}/${d.getDate()}`, ratio: ch > 0 ? +(ac/ch).toFixed(2) : 0 });
   }
 
@@ -154,7 +180,7 @@ export default function Dashboard() {
         </div>
 
         <div className="dash-side-cards">
-          <InjuryRiskCard risk={injuryRisk} />
+          <InjuryRiskCard risk={injuryRisk} mlPrediction={mlPrediction} isMlLoading={isMlLoading} />
           <div className="card acwr-mini-card">
             <div className="acwr-mini-header">
               <span className="injury-label">ACWR Ratio</span>
@@ -225,6 +251,9 @@ export default function Dashboard() {
           })}
         </div>
       </div>
+
+      {/* New Interactive ML Injury Risk Predictor Section */}
+      <InjuryPredictorSection />
 
       <div className="card" style={{marginTop:20}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>

@@ -1,9 +1,12 @@
+// src/components/layout/Sidebar.jsx
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, User, Activity, Map, Dumbbell,
-  TrendingUp, Heart, Bluetooth, ChevronRight, FileText, LogOut
+  TrendingUp, Heart, Bluetooth, ChevronRight, FileText, LogOut,
+  Sun, Moon
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import './Sidebar.css';
 
 const navItems = [
@@ -29,6 +32,7 @@ const getPrettyName = (username) => {
 
 export default function Sidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
   if (!user) return null;
@@ -36,7 +40,6 @@ export default function Sidebar({ isOpen, onClose }) {
   const displayName = getPrettyName(user.username);
   const initials = displayName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
-  // Filter items matching user permissions
   const filteredItems = navItems.filter(item =>
     !item.restrictedRoles || item.restrictedRoles.includes(user.role)
   );
@@ -47,8 +50,16 @@ export default function Sidebar({ isOpen, onClose }) {
         <div className="sidebar-logo-icon">⚡</div>
         <div className="sidebar-logo-text">
           <span className="sidebar-logo-name">AthletIQ</span>
-          <span className="sidebar-logo-sub">Intelligence Platform</span>
+          <span className="sidebar-logo-sub">Telemetry Platform</span>
         </div>
+
+        <button
+          className="theme-toggle-btn"
+          onClick={toggleTheme}
+          title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+        >
+          {isDark ? <Sun size={16} color="#F59E0B" /> : <Moon size={16} color="#0284C7" />}
+        </button>
       </div>
 
       <div className="sidebar-nav">
@@ -67,47 +78,19 @@ export default function Sidebar({ isOpen, onClose }) {
         ))}
       </div>
 
-      <div className="sidebar-bottom">
-        <div className="sidebar-profile-mini" onClick={() => { navigate('/profile'); onClose && onClose(); }}>
-          <div className="profile-avatar">{initials}</div>
-          <div className="profile-info">
-            <div className="profile-name">{displayName}</div>
-            <div className="profile-sport">{user.role}</div>
+      <div className="sidebar-footer">
+        <div className="sidebar-user" onClick={() => { navigate('/profile'); onClose && onClose(); }}>
+          <div className="sidebar-avatar">{initials}</div>
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-name">{displayName}</div>
+            <div className="sidebar-user-role">{user.role || 'Athlete'}</div>
           </div>
         </div>
-        <button
-          className="btn-logout-sidebar"
-          onClick={logout}
-          title="Sign Out Session"
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: 8,
-            borderRadius: 6,
-            color: 'var(--text-muted)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s',
-            marginTop: 10,
-            width: '100%'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--red)';
-            e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--text-muted)';
-            e.currentTarget.style.background = 'none';
-          }}
-        >
-          <LogOut size={16} style={{ marginRight: 8 }} />
-          <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Logout</span>
+        <button className="logout-btn-full" onClick={logout} title="Sign Out Session">
+          <LogOut size={15} />
+          <span>Sign Out</span>
         </button>
       </div>
     </nav>
   );
 }
-
-

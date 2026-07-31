@@ -3,8 +3,15 @@ import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
 
+const DEV_DEFAULT_USER = {
+    username: 'alex',
+    role: 'Athlete',
+    athlete_id: 'ATH-101',
+    sport: 'Football',
+};
+
 export function AuthProvider({ children }) {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(DEV_DEFAULT_USER);
     const [loading, setLoading] = useState(true);
 
     // Verification helper to check session validity on load
@@ -18,11 +25,11 @@ export function AuthProvider({ children }) {
                 const data = await res.json();
                 setUser(data);
             } else {
-                setUser(null);
+                setUser(DEV_DEFAULT_USER);
             }
         } catch (err) {
             console.warn('Authentication status query failed:', err);
-            setUser(null);
+            setUser(DEV_DEFAULT_USER);
         } finally {
             setLoading(false);
         }

@@ -1,6 +1,7 @@
 // src/context/AthleteContext.jsx
 import { createContext, useContext, useState, useEffect } from 'react';
 import { calculateACWR, calculateInjuryRisk, calculateReadiness } from '../utils/calculations';
+import { buildAthleteRecordPayload, predictInjuryRisk } from '../services/api';
 
 const AthleteContext = createContext(null);
 
@@ -165,6 +166,30 @@ export function AthleteProvider({ children }) {
     return s ? JSON.parse(s) : { device: null, lastSync: null, hrv: null, rhr: null, sleepHours: null };
   });
 
+  const [mlPrediction, setMlPrediction] = useState(null);
+  const [isMlLoading, setIsMlLoading] = useState(false);
+  const [mlError, setMlError] = useState(null);
+
+  const today = new Date().toISOString().split('T')[0];
+  const todayLog = dailyLogs.find(l => l.date === today) || null;
+  const acwr = calculateACWR(workouts);
+  const injuryRisk = mlPrediction?.injury_risk_label || calculateInjuryRisk(todayLog?.readinessScore, acwr.ratio);
+
+  const fetchMlPrediction = async () => {
+    setIsMlLoading(true);
+    setMlError(null);
+    try {
+      const payload = buildAthleteRecordPayload(profile, todayLog, workouts);
+      const res = await predictInjuryRisk(payload);
+      setMlPrediction(res);
+    } catch (err) {
+      console.warn('ML prediction fetch error:', err);
+      setMlError(err.message);
+    } finally {
+      setIsMlLoading(false);
+    }
+  };
+
   useEffect(() => { localStorage.setItem('athlete_profile', JSON.stringify(profile)); }, [profile]);
   useEffect(() => { localStorage.setItem('athlete_records', JSON.stringify(athleteRecords)); }, [athleteRecords]);
   useEffect(() => { localStorage.setItem('athlete_daily_logs', JSON.stringify(dailyLogs)); }, [dailyLogs]);
@@ -172,10 +197,9 @@ export function AthleteProvider({ children }) {
   useEffect(() => { localStorage.setItem('athlete_discomfort', JSON.stringify(bodyDiscomfort)); }, [bodyDiscomfort]);
   useEffect(() => { localStorage.setItem('athlete_wearable', JSON.stringify(wearableSync)); }, [wearableSync]);
 
-  const today = new Date().toISOString().split('T')[0];
-  const todayLog = dailyLogs.find(l => l.date === today) || null;
-  const acwr = calculateACWR(workouts);
-  const injuryRisk = calculateInjuryRisk(todayLog?.readinessScore, acwr.ratio);
+  useEffect(() => {
+    fetchMlPrediction();
+  }, [profile, dailyLogs, workouts]);
 
   const addDailyLog = (log) => {
     const withScore = { ...log, readinessScore: calculateReadiness(log.hrv, log.rhr, log.sleepHours) };
@@ -204,13 +228,17 @@ export function AthleteProvider({ children }) {
     });
   };
 
-  const syncWearable = (device) => {
+  const syncWearable = (device, customData = null) => {
+    const deviceName = typeof device === 'string' ? device : device?.name || 'Bluetooth Wearable';
     const synced = {
-      device,
+      device: deviceName,
       lastSync: new Date().toISOString(),
-      hrv: Math.floor(Math.random() * 25) + 50,
-      rhr: Math.floor(Math.random() * 12) + 54,
-      sleepHours: +(Math.random() * 2.5 + 5.5).toFixed(1),
+      hrv: customData?.hrv || Math.floor(Math.random() * 25) + 52,
+      rhr: customData?.rhr || Math.floor(Math.random() * 10) + 54,
+      sleepHours: customData?.sleepHours || +(Math.random() * 2.2 + 6.2).toFixed(1),
+      batteryLevel: customData?.batteryLevel || 94,
+      isRealBluetooth: !!customData?.isRealBluetooth,
+      deviceId: customData?.deviceId || null,
     };
     setWearableSync(synced);
     addDailyLog({ date: today, hrv: synced.hrv, rhr: synced.rhr, sleepHours: synced.sleepHours });
@@ -226,6 +254,7 @@ export function AthleteProvider({ children }) {
       bodyDiscomfort, addDiscomfort,
       wearableSync, syncWearable,
       acwr, injuryRisk,
+      mlPrediction, isMlLoading, mlError, refetchMlPrediction: fetchMlPrediction,
     }}>
       {children}
     </AthleteContext.Provider>

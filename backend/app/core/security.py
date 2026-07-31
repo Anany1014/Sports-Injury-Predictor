@@ -99,12 +99,26 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
 # Dependencies & Guards
 # ---------------------------------------------------------------------------
 async def get_current_user(request: Request) -> User:
-    """Validate JWT cookie and retrieve user metadata parameters."""
+    """Validate JWT cookie or Authorization header and retrieve user metadata parameters."""
     token = request.cookies.get("access_token")
     if not token:
+        auth_header = request.headers.get("Authorization")
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ", 1)[1].strip()
+
+    if not token:
+        # In development mode, fallback to default user ('alex') if no token provided
+        if settings.app_env == "development":
+            user_info = MOCK_USER_DB["alex"]
+            return User(
+                username=user_info["username"],
+                role=user_info["role"],
+                athlete_id=user_info.get("athlete_id"),
+                sport=user_info.get("sport")
+            )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication credentials missing from application request cookie"
+            detail="Authentication credentials missing from request cookie or Authorization header"
         )
 
     try:
