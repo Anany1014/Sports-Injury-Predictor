@@ -8,14 +8,14 @@
 [![XGBoost](https://img.shields.io/badge/Model-XGBoost%20v2.4-FF6600.svg)](https://xgboost.readthedocs.io/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-An end-to-end Machine Learning system and interactive performance telemetry platform that forecasts athlete injury risk in real time and streams evidence-based recovery prescriptions using **XGBoost Ensemble v2.4** and **NVIDIA Nemotron-4 340B LLM**.
+An end-to-end Machine Learning system and interactive performance telemetry platform that forecasts athlete injury risk in real time and streams evidence-based recovery prescriptions using **XGBoost Ensemble v2.4** and **NVIDIA Nemotron-Nano 9B LLM**.
 
 ---
 
 ## 🌟 Key Features
 
 - **🧠 Machine Learning Injury Engine**: Trained across multi-season workload logs, biometrics (HRV, Resting HR, Sleep), and Acute:Chronic Workload Ratio (ACWR) feature engineering. Includes XGBoost, LightGBM, Random Forest, and HistGradientBoosting classifiers tuned for severe class imbalance (`scale_pos_weight`).
-- **⚡ LLM Recovery Prescription Console**: Streams real-time Server-Sent Events (SSE) via OpenRouter using **NVIDIA Nemotron-4** (`nvidia/nemotron-nano-9b-v2:free`). Delivers 4 metric target cards and non-repeating sports science execution directives (Dynamic Warm-Ups, Active Mobility, Whole-Food Meals, and Biometric Re-entry Thresholds).
+- **⚡ LLM Recovery Prescription Console**: Streams real-time Server-Sent Events (SSE) via OpenRouter using **NVIDIA Nemotron-Nano 9B** (`nvidia/nemotron-nano-9b-v2:free`). Delivers 4 metric target cards and non-repeating sports science execution directives (Dynamic Warm-Ups, Active Mobility, Whole-Food Meals, and Biometric Re-entry Thresholds).
 - **📡 Web Bluetooth API Wearable Integration**: Native browser GATT Bluetooth scanning (`navigator.bluetooth.requestDevice`) for COROS, Garmin, Apple Watch, WHOOP, Oura Ring, Polar, and Suunto devices with live HRV, RHR, and battery telemetry import.
 - **🎨 Pro Telemetry Design & Dark/Light Mode**: High-contrast UI built with React 19, Vite, Recharts, and Lucide icons featuring dual Obsidian Dark (`#0B0F17`) and Light Chalk (`#F8FAFC`) modes with persistent theme toggle.
 - **🛡️ Production Ready Backend**: Built with FastAPI, Pydantic v2 data validation, HIPAA/GDPR encrypted audit log formatting, Pytest test suite, and clean environment variable isolation.
@@ -46,7 +46,7 @@ Due to the extreme rarity of sports injuries (~1.2% positive occurrence rate in 
 
 ## 🤖 Large Language Model (LLM) Integration
 
-The recovery prescription engine is powered by **NVIDIA Nemotron-4 340B Architecture** (`nvidia/nemotron-nano-9b-v2:free` via OpenRouter API).
+The recovery prescription engine is powered by **NVIDIA Nemotron-Nano 9B Architecture** (`nvidia/nemotron-nano-9b-v2:free` via OpenRouter API).
 
 ### Streaming SSE Architecture
 - **Endpoint**: `/api/v1/recommendations/stream/full`

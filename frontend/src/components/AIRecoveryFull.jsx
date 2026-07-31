@@ -276,14 +276,14 @@ function AIRecoveryFull({ record, prediction }) {
             <div className="rf-title-row">
               <h3 className="rf-title">ATHLETIC RECOVERY & PRESCRIPTION CONSOLE</h3>
               <span className="rf-model-badge">
-                <Cpu size={12} style={{ marginRight: 4 }} /> NVIDIA Nemotron-4 340B LLM
+                <Cpu size={12} style={{ marginRight: 4 }} /> NVIDIA Nemotron-Nano 9B LLM
               </span>
               <span className="rf-live-feed">
                 <span className="rf-green-pulse" /> TELEMETRY ACTIVE
               </span>
             </div>
             <p className="rf-subtitle">
-              Evidence-Based Protocols powered by NVIDIA Nemotron-4 340B & XGBoost Injury Risk Engine
+              Evidence-Based Protocols powered by NVIDIA Nemotron-Nano 9B & XGBoost Injury Risk Engine
             </p>
           </div>
         </div>
