@@ -106,10 +106,10 @@ body {
 ::-webkit-scrollbar-thumb:hover { background: rgba(56, 189, 248, 0.6); }
 
 /* Typography */
-h1 { font-size: 1.85rem; font-weight: 800; color: #F8FAFC; letter-spacing: -0.02em; }
-h2 { font-size: 1.4rem; font-weight: 700; color: #F8FAFC; letter-spacing: -0.01em; }
-h3 { font-size: 1.08rem; font-weight: 700; color: #F8FAFC; }
-h4 { font-size: 0.92rem; font-weight: 600; color: #F8FAFC; }
+h1 { font-size: 1.85rem; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; }
+h2 { font-size: 1.4rem; font-weight: 700; color: var(--text-primary); letter-spacing: -0.01em; }
+h3 { font-size: 1.08rem; font-weight: 700; color: var(--text-primary); }
+h4 { font-size: 0.92rem; font-weight: 600; color: var(--text-primary); }
 p { line-height: 1.6; color: var(--text-secondary); }
 
 /* Buttons */
@@ -257,7 +257,7 @@ p { line-height: 1.6; color: var(--text-secondary); }
 /* Page layout */
 .page { padding: 28px 32px; max-width: 1400px; }
 .page-header { margin-bottom: 24px; }
-.page-title { font-size: 1.75rem; font-weight: 800; margin-bottom: 4px; color: #F8FAFC; }
+.page-title { font-size: 1.75rem; font-weight: 800; margin-bottom: 4px; color: var(--text-primary); }
 .page-subtitle { color: var(--text-secondary); font-size: 0.88rem; }
 
 /* Grid helpers */
